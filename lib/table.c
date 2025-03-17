@@ -31,7 +31,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <search.h>
-#include <endian.h>
+#include "portable_endian.h"
 #include <ctype.h>
 #include "table.h"
 

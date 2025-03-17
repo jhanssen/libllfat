@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <endian.h>
+#include "portable_endian.h"
 #include "entry.h"
 #include "table.h"
 

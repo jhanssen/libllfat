@@ -31,10 +31,10 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include <endian.h>
+#include "portable_endian.h"
 #include <search.h>
 #include <ctype.h>
-#include <linux/fs.h>
+//#include <linux/fs.h>
 #include "boot.h"
 #include "table.h"
 

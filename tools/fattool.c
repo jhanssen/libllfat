@@ -36,10 +36,9 @@
 #include <inttypes.h>
 #include <ctype.h>
 #include <wctype.h>
-#include <malloc.h>
-#include <linux/fs.h>
 #include <llfat.h>
 #include <debug.h>
+#include <portable_endian.h>
 
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 
@@ -944,14 +943,14 @@ uint32_t filesize(char *file) {
 	}
 	if (S_ISREG(ss.st_mode))
 		return ss.st_size / sectorsize;
-	else if (S_ISBLK(ss.st_mode)) {
-		fd = open(file, O_RDONLY);
-		ioctl(fd, BLKGETSIZE, &sectors);
-		close(fd);
-		return sectors;
-	}
-	printf("unsupported file type\n");
-	return 0;
+        /* else if (S_ISBLK(ss.st_mode)) { */
+        /* 	fd = open(file, O_RDONLY); */
+        /* 	ioctl(fd, BLKGETSIZE, &sectors); */
+        /* 	close(fd); */
+        /* 	return sectors; */
+        /* } */
+        printf("unsupported file type\n");
+        return 0;
 }
 
 /*
