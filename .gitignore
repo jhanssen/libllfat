@@ -1,0 +1,5 @@
+*.o
+*.so
+*.~undo-tree~
+build/*
+lib/llfat.h
