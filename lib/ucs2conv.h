@@ -15,4 +15,10 @@ uint16_t* fatutf8toucs2(uint16_t* dst, const char* src, int srclen, int* err);
 char* fatchartoutf8(char* dst, const char* src, int srclen, int* err);
 char* fatutf8tochar(char* dst, const char* src, int srclen, int* err);
 
+int utf8cmp(const char* a, const char* b);
+int utf8ncmp(const char* a, const char* b, size_t n);
+
+int utf8casecmp(const char* a, const char* b);
+int utf8ncasecmp(const char* a, const char* b, size_t n);
+
 #endif // UC2CONV_H__

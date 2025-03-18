@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utf8proc.h>
 
 // ### should make sure that these do ucs2le on big endian systems
 
@@ -308,4 +309,103 @@ char* fatutf8tochar(char* dst, const char* src, int srclen, int* err)
     }
 
     return dst;
+}
+
+int utf8ncmp(const char* a, const char* b, size_t n)
+{
+    utf8proc_int32_t ac, bc;
+    utf8proc_ssize_t ar, br;
+
+    uint8_t* a1 = (uint8_t*)a;
+    uint8_t* b1 = (uint8_t*)b;
+
+    int ao = 0, bo = 0;
+
+    size_t cnt = 0;
+    for (; cnt < n; ++cnt) {
+        ar = utf8proc_iterate(a1 + ao, -1, &ac);
+        br = utf8proc_iterate(b1 + bo, -1, &bc);
+
+        if (ar < 0 || br < 0) {
+            // iteration error
+            return ar < 0 ? -1 : 1;
+        } else if ((ar == 1 && ac == 0) || (br == 1 && bc == 0)) {
+            // one of the strings is at the 0 termination point
+            return ac - bc;
+        }
+
+        if (ac != bc) {
+            return ac - bc;
+        }
+
+        ao += ar;
+        bo += br;
+    }
+    return 0;
+}
+
+int utf8cmp(const char* a, const char* b)
+{
+    return utf8ncmp(a, b, SIZE_MAX);
+}
+
+int utf8ncasecmp(const char* a, const char* b, size_t n)
+{
+    utf8proc_int32_t ac, bc;
+    utf8proc_ssize_t ar, br, arf, brf, rf, idx;
+
+    // not sure how many chars I need here?
+    utf8proc_int32_t af[10];
+    utf8proc_int32_t bf[10];
+
+    uint8_t* a1 = (uint8_t*)a;
+    uint8_t* b1 = (uint8_t*)b;
+
+    int ao = 0, bo = 0;
+
+    size_t cnt = 0;
+    for (; cnt < n; ++cnt) {
+        ar = utf8proc_iterate(a1 + ao, -1, &ac);
+        br = utf8proc_iterate(b1 + bo, -1, &bc);
+
+        if (ar < 0 || br < 0) {
+            // iteration error
+            return ar < 0 ? -1 : 1;
+        } else if ((ar == 1 && ac == 0) || (br == 1 && bc == 0)) {
+            // one of the strings is at the 0 termination point
+            return ac - bc;
+        }
+
+        // case fold the codepoint and compare the results
+        arf = utf8proc_decompose_char(ac, af, 10, UTF8PROC_CASEFOLD, NULL);
+        brf = utf8proc_decompose_char(bc, bf, 10, UTF8PROC_CASEFOLD, NULL);
+        if (arf > 0 && brf > 0) {
+            rf = (arf < brf) ? arf : brf;
+            for (idx = 0; idx < rf; ++idx) {
+                if (af[idx] != bf[idx]) {
+                    // case fold result is different
+                    return af[idx] - bf[idx];
+                }
+            }
+            // check if one case fold is longer than the other
+            if (arf < brf) {
+                return -1;
+            } else if (arf > brf) {
+                return 1;
+            }
+        } else {
+            // one or both case folds failed
+            return arf < 0 ? -1 : 1;
+        }
+
+        ao += ar;
+        bo += br;
+    }
+
+    return 0;
+}
+
+int utf8casecmp(const char* a, const char* b)
+{
+    return utf8ncasecmp(a, b, SIZE_MAX);
 }
