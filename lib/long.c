@@ -310,7 +310,7 @@ int fatnextname(fat *f, unit **directory, int *index, char **name) {
  * string matching, case sensitive or not depending on f->insensitive
  */
 int _fatwcscmp(fat *f, const char *a, const char *b) {
-	return f->insensitive ? wcscasecmp(a, b) : wcscmp(a, b);
+	return f->insensitive ? utf8casecmp(a, b) : utf8cmp(a, b);
 }
 
 /*
@@ -329,9 +329,9 @@ int fatlookupfilelongboth(fat *f, int32_t dir, char *name,
 	int32_t cl;
 	int res;
 
-	dprintf("lookup file %ls:", name);
+	dprintf("lookup file %s:", name);
 
-	if (swscanf(name, L"entry:%d,%d", &cl, longindex) == 2) {
+	if (sscanf(name, "entry:%d,%d", &cl, longindex) == 2) {
 		if (cl == 0)
 			cl = fatgetrootbegin(f);
 		*longdirectory = fatclusterread(f, cl);
@@ -346,7 +346,7 @@ int fatlookupfilelongboth(fat *f, int32_t dir, char *name,
 	     fatlongnext(f, directory, index,
 	     		longdirectory, longindex, &sname) != FAT_END;
 	     fatnextentry(f, directory, index)) {
-		dprintf(" %ls", sname);
+		dprintf(" %s", sname);
 		if (! _fatwcscmp(f, name, sname)) {
 			dprintf(" <- (found)\n");
 			free(sname);
@@ -377,7 +377,7 @@ int32_t fatlookupfirstclusterlong(fat *f, int32_t dir, char *name) {
 	int index;
 	int32_t cl;
 
-	if (swscanf(name, L"cluster:%d", &cl) == 1)
+	if (sscanf(name, "cluster:%d", &cl) == 1)
 		return cl;
 
 	if (fatlookupfilelong(f, dir, name, &directory, &index))
@@ -395,9 +395,9 @@ int fatlookuppathlongbothdir(fat *f, int32_t *dir, char *path,
 	char *end, *last, *copy;
 	int res;
 
-	dprintf("%ls\n", path);
+	dprintf("%s\n", path);
 
-	end = wcschr(path, L'/');
+	end = strchr(path, '/');
 
 	if (end == NULL)
 		return fatlookupfilelongboth(f, *dir, path,
@@ -407,37 +407,37 @@ int fatlookuppathlongbothdir(fat *f, int32_t *dir, char *path,
 		return fatlookuppathlongbothdir(f, dir, path + 1,
 			directory, index, longdirectory, longindex);
 
-	for (last = end; *last == L'/'; last++) {
+	for (last = end; *last == '/'; last++) {
 	}
 
-	if (*last == WNULL) {
-		copy = wcsdup(path);
-		copy[end - path] = WNULL;
+	if (*last == 0) {
+		copy = strdup(path);
+		copy[end - path] = 0;
 		res = fatlookupfilelongboth(f, *dir, copy,
 			directory, index, longdirectory, longindex);
 		free(copy);
 		return res;
 	}
 
-	copy = wcsdup(path);
-	copy[end - path] = WNULL;
+	copy = strdup(path);
+	copy[end - path] = 0;
 	*dir = fatlookupfirstclusterlong(f, *dir, copy);
 	if (*dir == 0)
 		*dir = fatgetrootbegin(f);
 	if (*dir == FAT_ERR) {
-		dprintf("part of path not found: '%ls'\n", copy);
+		dprintf("part of path not found: '%s'\n", copy);
 		free(copy);
 		*directory = NULL;
 		return -1;
 	}
 
-	dprintf("name '%ls', directory: %d\n", copy, *dir);
+	dprintf("name '%s', directory: %d\n", copy, *dir);
 
 	res = fatlookuppathlongbothdir(f, dir, last,
 		directory, index, longdirectory, longindex);
 
 	if (! res) {
-		dprintf("name '%ls':", last);
+		dprintf("name '%s':", last);
 		dprintf(" %d,%d\n", (*directory)->n, *index);
 	}
 
@@ -477,10 +477,10 @@ int32_t fatlookuppathfirstclusterlong(fat *f, int32_t dir, char *path) {
 	unit *directory;
 	int index;
 
-	if (! wcscmp(path, L"/"))
+	if (! utf8cmp(path, "/"))
 		return fatgetrootbegin(f);
 
-	if (! wcschr(path, L'/'))
+	if (! strchr(path, '/'))
 		return fatlookupfirstclusterlong(f, dir, path);
 
 	if (fatlookuppathlong(f, dir, path, &directory, &index))
@@ -532,7 +532,7 @@ int fatfindfreepathlong(fat *f, int32_t dir, char *path, int len,
 
 	r = fatgetrootbegin(f);
 
-	if (path == NULL || ! wcscmp(path, L"") || ! wcscmp(path, L"/"))
+	if (path == NULL || ! utf8cmp(path, "") || ! utf8cmp(path, "/"))
 		cl = r;
 	else {
 		if (path[0] == '/')
@@ -559,10 +559,10 @@ int fatinvalidnamelong(const char *name) {
 	if (fatinvalidpathlong(name))
 		return -1;
 
-	if (wcschr(name, L'/'))
+	if (strchr(name, '/'))
 		return -1;
 
-	if (! wcscmp(name, L".") || ! wcscmp(name, L".."))
+	if (! utf8cmp(name, ".") || ! utf8cmp(name, ".."))
 		return 1;
 
 	return 0;
@@ -571,16 +571,16 @@ int fatinvalidnamelong(const char *name) {
 int fatinvalidpathlong(const char *path) {
 	char *scan, *last;
 
-	if (wcspbrk(path, L"\"*:<>?\\|"))
+	if (strpbrk(path, "\"*:<>?\\|"))
 		return -1;
 
 	for (scan = (char *) path; *scan; scan++)
 		if (*scan < 32)
 			return -1;
 
-	last = wcsrchr(path, '/');
+	last = strrchr(path, '/');
 	last = last == NULL ? (char *) path : last + 1;
-	if (! wcscmp(last, L".") || ! wcscmp(last, L".."))
+	if (! utf8cmp(last, ".") || ! utf8cmp(last, ".."))
 		return 1;
 
 	return 0;
@@ -592,15 +592,15 @@ int fatinvalidpathlong(const char *path) {
 char *_fatlegalize(const char *path, const char *illegal) {
 	char *dst, *dscan, *scan;
 
-	dst = malloc(wcslen(path) * sizeof(char) * 4);
+	dst = malloc(strlen(path) * sizeof(char) * 4);
 	dscan = dst;
 
 	for (scan = (char *) path; *scan; scan++)
-		if (wcschr(illegal, *scan) || *scan < 32) {
-			*dscan++ = L'[';
-			swprintf(dscan, 4, L"%X", *scan);
-			dscan += wcslen(dscan);
-			*dscan++ = L']';
+		if (strchr(illegal, *scan) || *scan < 32) {
+			*dscan++ = '[';
+			sprintf(dscan, "%X", *scan);
+			dscan += strlen(dscan);
+			*dscan++ = ']';
 		}
 		else {
 			*dscan++ = *scan;
@@ -610,10 +610,10 @@ char *_fatlegalize(const char *path, const char *illegal) {
 	return dst;
 }
 char *fatlegalizenamelong(const char *path) {
-	return _fatlegalize(path, L"\"*:<>?\\|[]/");
+	return _fatlegalize(path, "\"*:<>?\\|[]/");
 }
 char *fatlegalizepathlong(const char *path) {
-	return _fatlegalize(path, L"\"*:<>?\\|[]");
+	return _fatlegalize(path, "\"*:<>?\\|[]");
 }
 
 /*
@@ -622,32 +622,32 @@ char *fatlegalizepathlong(const char *path) {
 char *_fatstoragepartlong(char **dst, const char **src) {
 	char *start, *end, *scan;
 
-	dprintf("src: |%ls|\n", *src);
+	dprintf("src: |%s|\n", *src);
 
-	while (**src != L'\0' && **src == ' ')
+	while (**src != '\0' && **src == ' ')
 		(*src)++;
 
-	end = wcschr(*src, L'/');
-	end = end == NULL ? (char *) *src + wcslen(*src) : end;
+	end = strchr(*src, '/');
+	end = end == NULL ? (char *) *src + strlen(*src) : end;
 
 	scan = end - 1;
-	while (scan >= *src && (*scan == L' ' || *scan == L'.'))
+	while (scan >= *src && (*scan == ' ' || *scan == '.'))
 		scan--;
 	scan++;
 
-	if (end - *src == 1 && scan[0] == L'.')
+	if (end - *src == 1 && scan[0] == '.')
 		scan = (char *) *src + 1;
-	if (end - *src == 2 && scan[0] == L'.' && scan[1] == L'.')
+	if (end - *src == 2 && scan[0] == '.' && scan[1] == '.')
 		scan = (char *) *src + 2;
 
-	wmemcpy(*dst, *src, scan - *src);
+	memcpy(*dst, *src, scan - *src);
 
 	start = *dst;
 	*dst += scan - *src;
 	**dst = *end;
 	*src = end;
 
-	dprintf("start: |%ls|\tdst: |%ls|\tleft: |%ls|\n", start, *dst, *src);
+	dprintf("start: |%s|\tdst: |%s|\tleft: |%s|\n", start, *dst, *src);
 	return start;
 }
 
@@ -656,7 +656,7 @@ char *_fatstoragepartlong(char **dst, const char **src) {
  */
 char *fatstoragenamelong(const char *name) {
 	char *dst, *start;
-	dst = malloc(sizeof(char) * (wcslen(name) + 1));
+	dst = malloc(sizeof(char) * (strlen(name) + 1));
 	start = _fatstoragepartlong(&dst, &name);
 	if (*dst == '/')
 		printf("WARNING: path passed as file to %s()\n", __func__);
@@ -668,7 +668,7 @@ char *fatstoragenamelong(const char *name) {
  */
 char *fatstoragepathlong(const char *path) {
 	char *start, *dst;
-	start = malloc(sizeof(char) * (wcslen(path) + 1));
+	start = malloc(sizeof(char) * (strlen(path) + 1));
 	for (dst = start; _fatstoragepartlong(&dst, &path) && *path; ) {
 		path++;
 		dst++;
@@ -684,11 +684,11 @@ void _fatsetlongpart(unit *directory, int index, char *part,
 
 	fatentryzero(directory, index);
 
-	fatwstoucs2((ucs2char *)
+	fatutf8toucs2((ucs2char *)
 			& ENTRYPOS(directory, index, 1), part, 5, NULL);
-	fatwstoucs2((ucs2char *)
+	fatutf8toucs2((ucs2char *)
 			& ENTRYPOS(directory, index, 14), part + 5, 6, NULL);
-	fatwstoucs2((ucs2char *)
+	fatutf8toucs2((ucs2char *)
 			& ENTRYPOS(directory, index, 28), part + 5 + 6, 2,
 			NULL);
 
@@ -712,12 +712,12 @@ int fatcreatefileshortlong(fat *f, int32_t dir,
 	ucs2char filler;
 	uint8_t checksum;
 
-	dprintf("fatcreatefileshortlong: %11.11s %ls\n", shortname, longname);
+	dprintf("fatcreatefileshortlong: %11.11s %s\n", shortname, longname);
 
 	filler = 0xFFFF;
-	fatucs2tows(&wfiller, &filler, 1, NULL);
+	fatucs2toutf8(&wfiller, &filler, 1, NULL);
 
-	len = wcslen(longname);
+	len = strlen(longname);
 	n = (len + 12) / 13 + 1;
 
 	*directory = fatclusterread(f, dir);
@@ -738,14 +738,14 @@ int fatcreatefileshortlong(fat *f, int32_t dir,
 	scandirectory = *startdirectory;
 	scanindex = *startindex;
 	for (pos = n - 1; pos > 0; pos--) {
-		wmemcpy(frag, longname + (pos - 1) * 13,
+		memcpy(frag, longname + (pos - 1) * 13,
 			MIN(13, len - (pos - 1) * 13));
-		frag[MIN(13, len - (pos - 1) * 13)] = WNULL;
+		frag[MIN(13, len - (pos - 1) * 13)] = 0;
 		for (i = MIN(13, len - (pos - 1) * 13) + 1; i < 14; i++)
 			frag[i] = wfiller;
 
 		dprintf("%d,%d ", scandirectory->n, scanindex);
-		dprintf("%d %ls\n", pos, frag);
+		dprintf("%d %s\n", pos, frag);
 
 		_fatsetlongpart(scandirectory, scanindex,
 			frag, pos, pos == n - 1, checksum);
@@ -773,9 +773,9 @@ int _fatstringcase(char *s, int len) {
 
 	c = 1000;
 	for (i = 0; i < len && s[i]; i++)
-		if (iswupper(s[i]) || s[i] == L'-')
+		if (iswupper(s[i]) || s[i] == '-')
 			c = c != -1 && c != 0 ? 1 : 0;
-		else if (iswlower(s[i]) || s[i] == L'-')
+		else if (iswlower(s[i]) || s[i] == '-')
 			c = c != 1 && c != 0 ? -1 : 0;
 	return c;
 }
@@ -783,7 +783,7 @@ int _fatstringcase(char *s, int len) {
 void _fatwcstoupper(unsigned char *dst, char *src, int len) {
 	int i;
 
-	fatwstochar((char *) dst, src, len, NULL);
+	fatutf8tochar((char *) dst, src, len, NULL);
 	for (i = 0; i < len; i++)
 		dst[i] = toupper(dst[i]);
 }
@@ -795,31 +795,31 @@ int _fatshorttoshort(char *name,
 
 	*casebyte = 0;
 
-	if (! wcscmp(name, L".") || ! wcscmp(name, L"..")) {
+	if (! utf8cmp(name, ".") || ! utf8cmp(name, "..")) {
 		memcpy(shortname, ".          ", 11);
-		shortname[1] = name[1] == L'.' ? '.' : ' ';
+		shortname[1] = name[1] == '.' ? '.' : ' ';
 		return 0;
 	}
 
-	dot = wcschr(name, L'.');
-	if (dot != NULL && wcschr(dot + 1, L'.'))
+	dot = strchr(name, '.');
+	if (dot != NULL && strchr(dot + 1, '.'))
 		return -1;
 
 	if (dot == name)
 		return -1;
-	if (dot == NULL && wcslen(name) > 8)
+	if (dot == NULL && strlen(name) > 8)
 		return -1;
 	if (dot != NULL && dot - name > 8)
 		return -1;
-	if (dot != NULL && wcslen(dot + 1) > 3)
+	if (dot != NULL && strlen(dot + 1) > 3)
 		return -1;
 
-	ext = dot != NULL ? dot : name + wcslen(name);
+	ext = dot != NULL ? dot : name + strlen(name);
 
 	casename = _fatstringcase(name, MIN(8, ext - name));
 	caseext = dot == NULL ? 1 :
 		_fatstringcase(ext + 1,
-			MIN(3, wcslen(name) - (ext + 1 - name)));
+			MIN(3, strlen(name) - (ext + 1 - name)));
 	dprintf("case byte: %d %d\n", casename, caseext);
 	if (casename == 0 || caseext == 0)
 		return -1;
@@ -828,7 +828,7 @@ int _fatshorttoshort(char *name,
 	_fatwcstoupper(shortname, name, MIN(8, ext - name));
 	if (dot != NULL)
 		_fatwcstoupper(shortname + 8, ext + 1,
-			MIN(3, wcslen(name) - (ext + 1 - name)));
+			MIN(3, strlen(name) - (ext + 1 - name)));
 
 	*casebyte |= caseext == -1 ? 0x10 : 00;
 	*casebyte |= casename == -1 ? 0x08 : 00;
@@ -854,19 +854,19 @@ int _fatshortexists(fat *f, int32_t dir, unsigned char shortname[11]) {
 
 int _fatlongtoshort(fat *f, int32_t dir, char *name,
 		unsigned char shortname[11]) {
-	unsigned char stem[11], num[9];
+	unsigned char stem[11], num[11];
 	char *dot;
 	int i, n;
 
 	memset(stem, ' ', 11);
-	fatwstochar((char *) stem, name, 8, NULL);
+	fatutf8tochar((char *) stem, name, 8, NULL);
 
-	dot = wcsrchr(name, L'.');
+	dot = strrchr(name, '.');
 	if (dot != NULL) {
 		if (dot - name < 8)
 			memset(stem + (dot - name), ' ', 8 - (dot - name));
-		fatwstochar((char *) stem + 8, dot + 1,
-			MIN(3, wcslen(dot + 1)), NULL);
+		fatutf8tochar((char *) stem + 8, dot + 1,
+			MIN(3, strlen(dot + 1)), NULL);
 	}
 
 	for (i = 0; i < 11; i++)
@@ -908,17 +908,17 @@ int fatcreatefilelongboth(fat *f, int32_t dir, char *name,
 	unsigned char shortname[11];
 	unsigned char casebyte;
 
-	if (name[0] == L'\0')
+	if (name[0] == '\0')
 		return -1;
 
 	casebyte = 0;
 
 	if (! _fatshorttoshort(name, shortname, &casebyte))
-		name = L"";
+		name = "";
 	else if (_fatlongtoshort(f, dir, name, shortname))
 		return -1;
 
-	dprintf("shortname: |%11.11s|\t\tlongname: |%ls|\n", shortname, name);
+	dprintf("shortname: |%11.11s|\t\tlongname: |%s|\n", shortname, name);
 
 	return fatcreatefileshortlong(f, dir, shortname, casebyte, name,
 		directory, index, startdirectory, startindex);
@@ -941,23 +941,23 @@ int fatcreatefilepathlongbothdir(fat *f, int32_t *dir, char *path,
 	char *buf, *slash, *dirname, *file;
 	int res;
 
-	buf = wcsdup(path);
-	slash = wcsrchr(buf, L'/');
+	buf = strdup(path);
+	slash = strrchr(buf, '/');
 	if (slash == NULL) {
-		dirname = L"/";
+		dirname = "/";
 		file = path;
 	}
 	else if (slash == buf) {
-		dirname = L"/";
+		dirname = "/";
 		file = buf + 1;
 	}
 	else {
 		dirname = buf;
-		*slash = WNULL;
+		*slash = 0;
 		file = slash + 1;
 	}
 
-	dprintf("path %ls, file %ls\n", dirname, file);
+	dprintf("path %s, file %s\n", dirname, file);
 
 	*dir = fatlookuppathfirstclusterlong(f, *dir, dirname);
 	if (*dir == FAT_ERR) {
@@ -1151,7 +1151,7 @@ int _fatdumplong(fat __attribute__((unused)) *f,
 		} while ((scandirectory->n != directory->n ||
 		          scanindex != index) &&
 			 ! fatnextentry(f, &scandirectory, &scanindex));
-		printf("  %-15ls %s", name, err == 0 ? "" : "ERR ");
+		printf("  %-15s %s", name, err == 0 ? "" : "ERR ");
 	}
 
 	if (target == FAT_EOF || target == FAT_UNUSED || target == FAT_ERR) {
@@ -1214,21 +1214,21 @@ int _fatfileexecutelong(fat *f,
 	case 0:
 		if (fatentryisdirectory(directory, index) &&
 		    ! fatentryisdotfile(directory, index))
-			s->name = wcsdup(name);
+			s->name = strdup(name);
 		break;
 	case 1:
-		wcsncat(s->path, s->name, MAX_PATH);
-		wcsncat(s->path, L"/", MAX_PATH);
+		strncat(s->path, s->name, MAX_PATH);
+		strncat(s->path, "/", MAX_PATH);
 		free(s->name);
 		s->name = NULL;
 		return 0;
 	case -1:
-		s->path[wcslen(s->path) - 1] = L'\0';
-		pos = wcsrchr(s->path, L'/');
+		s->path[strlen(s->path) - 1] = '\0';
+		pos = strrchr(s->path, '/');
 		if (pos == NULL)
-			s->path[0] = L'\0';
+			s->path[0] = '\0';
 		else
-			*(pos + 1) = L'\0';
+			*(pos + 1) = '\0';
 		return 0;
 	case -2:
 		return 0;
@@ -1245,7 +1245,7 @@ int fatfileexecutelong(fat *f, unit *directory, int index, int32_t previous,
 	struct fatfilelong s;
 
 	s.user = user;
-	s.path[0] = L'\0';
+	s.path[0] = '\0';
 	s.name = NULL;
 	s.act = act;
 
@@ -1335,21 +1335,21 @@ char *fatinversepathlong(fat *f, fatinverse *rev,
 		fatinversereferencetoentry(rev, &directory, &index, &previous);
 
 		if (fatreferenceisboot(directory, index, previous))
-			longname = wcsdup(L"");
+			longname = strdup("");
 		else if (fatreferenceisentry(directory, index, previous))
 			fatshortentrytolongname(f, rev, directory, index,
 				&longname);
 		else
 			return path;
 
-		dprintf("%ls\n", longname[0] == L'\0' ? L"/" : longname);
+		dprintf("%s\n", longname[0] == '\0' ? "/" : longname);
 
-		namelen = wcslen(longname);
+		namelen = strlen(longname);
 		path = realloc(path,
 			sizeof(char) * (pathlen + namelen + 1));
-		wmemmove(path + namelen + 1, path, pathlen);
-		path[namelen] = pathlen == 0 ? L'\0' : L'/';
-		wmemmove(path, longname, namelen);
+		memmove(path + namelen + 1, path, pathlen);
+		path[namelen] = pathlen == 0 ? '\0' : '/';
+		memmove(path, longname, namelen);
 		pathlen = pathlen + 1 + namelen;
 
 		free(longname);
