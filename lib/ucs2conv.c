@@ -27,7 +27,7 @@
 static size_t ucs2size(const uint16_t* ucs2)
 {
     size_t ucs2len = 0;
-    for (size_t i = 0; ucs2[i] != 0; i++) {
+    for (size_t i = 0; ucs2[i] != 0; ++i) {
         ++ucs2len;
     }
     return ucs2len;
@@ -42,45 +42,39 @@ size_t utf8toucs2(const char *utf8, size_t utf8len, uint16_t *ucs2, size_t* ucs2
     size_t nonconv = 0;
     const size_t inlen = *ucs2len;
     size_t outlen = 0;
-    for (size_t i = 0; i < utf8len; ++i) {
-        if (ucs2 && outlen >= inlen) {
-            // no room in ucs2
+
+    utf8proc_int32_t uc;
+    utf8proc_ssize_t ur;
+
+    uint8_t* u8 = (uint8_t*)utf8;
+
+    int uo = 0;
+
+    for (;;) {
+        ur = utf8proc_iterate(u8 + uo, utf8len - uo, &uc);
+        if (ur == 0) {
+            // end
+            break;
+        } else if (ur < 0) {
+            // iterate error
             return -1;
         }
-        if ((utf8[i] & 0x80) == 0) {
-            // one byte
+
+        if (uc >= 0 && uc <= 0xFFFF) {
             if (ucs2) {
-                ucs2[outlen] = utf8[i];
+                if (outlen < inlen) {
+                    ucs2[outlen] = (uint16_t)uc;
+                } else {
+                    return -1;
+                }
             }
             ++outlen;
-        } else if ((utf8[i] & 0xE0) == 0xC0) {
-            // two bytes
-            if (i + 1 < utf8len) {
-                if (ucs2) {
-                    ucs2[outlen] = ((utf8[i] & 0x1F) << 6) | (utf8[i + 1] & 0x3F);
-                }
-                ++outlen;
-                ++i;
-            } else {
-                // utf8 out of range
-                return -1;
-            }
-        } else if ((utf8[i] & 0xF0) == 0xE0) {
-            // three bytes
-            if (i + 2 < utf8len) {
-                if (ucs2) {
-                    ucs2[outlen] = ((utf8[i] & 0x0F) << 12) | ((utf8[i + 1] & 0x3F) << 6) | (utf8[i + 2] & 0x3F);
-                }
-                ++outlen;
-                i += 2;
-            } else {
-                // utf8 out of range
-                return -1;
-            }
-        } else if ((utf8[i] & 0xF8) == 0xF0) {
-            // four bytes
-            nonconv += 4;
+        } else {
+            // non-convertible
+            nonconv += ur;
         }
+
+        uo += ur;
     }
 
     // null terminate if room
