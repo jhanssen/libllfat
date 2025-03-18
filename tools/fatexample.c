@@ -36,8 +36,7 @@ int main() {
 	fat *f;
 
 	char *path;
-	size_t len;
-	wchar_t *wpath, *converted;
+	char *converted;
 	unit *directory;
 	int index;
 
@@ -52,7 +51,7 @@ int main() {
 	int32_t previous, target, new;
 
 	int32_t d;
-	wchar_t *name;
+	char *name;
 
 	fatinverse *rev;
 
@@ -81,18 +80,11 @@ int main() {
 				/* fat_lib.3: FIND A FILE */
 
 	path = strdup("fs.c");
-	len = mbstowcs(NULL, path, 0);
-	if (len == (size_t) -1) {
-		printf("invalid string\n");
-		exit(1);
-	}
-	wpath = malloc((len + 1) * sizeof(wchar_t));
-	mbstowcs(wpath, path, len + 1);
-	if (fatinvalidpathlong(wpath) < 0) {
+	if (fatinvalidpathlong(path) < 0) {
 		printf("invalid path\n");
 		exit(1);
 	}
-	converted = fatstoragepathlong(wpath);
+	converted = fatstoragepathlong(path);
 	if (fatlookuppathlong(f, fatgetrootbegin(f),
 			converted, &directory, &index)) {
 		printf("file does not exist\n");
@@ -152,27 +144,27 @@ int main() {
 
 			/* fat_lib.3: CREATE A NEW FILE */
 
-	wpath = wcsdup(L"new.txt");
-	if (fatinvalidpathlong(wpath) < 0) {
+	path = strdup("new.txt");
+	if (fatinvalidpathlong(path) < 0) {
 		printf("invalid path\n");
 		exit(1);
 	}
-	converted = fatstoragepathlong(wpath);
+	converted = fatstoragepathlong(path);
 
 	fatcreatefilepathlong(f, fatgetrootbegin(f),
 		converted, &directory, &index);
 
 			/* fat_lib.3: SCAN A DIRECTORY */
 
-	wpath = wcsdup(L"/aaa");
-	d = fatlookuppathfirstclusterlong(f, fatgetrootbegin(f), wpath);
+	path = strdup("/aaa");
+	d = fatlookuppathfirstclusterlong(f, fatgetrootbegin(f), path);
 	directory = fatclusterread(f, d);
 
 	for (index = 0;
 	     ! fatnextname(f, &directory, &index, &name);
 	     fatnextentry(f, &directory, &index)) {
 		fatentryprint(directory, index);
-		printf("\t%ls\n", name);
+		printf("\t%s\n", name);
 
 		if (fatentryisdirectory(directory,index)) {
 			d = fatentrygetfirstcluster(directory, index,
@@ -260,8 +252,8 @@ int main() {
 
 			/* fat_functions.3: directory.h, fatnextentry() */
 
-	wpath = wcsdup(L"/aaa");
-	d = fatlookuppathfirstclusterlong(f, fatgetrootbegin(f), wpath);
+	path = strdup("/aaa");
+	d = fatlookuppathfirstclusterlong(f, fatgetrootbegin(f), path);
 	directory = fatclusterread(f, d);
 
 	for (index = -1; ! fatnextentry(f, &directory, &index); ) {
@@ -300,7 +292,7 @@ int main() {
 		printf("%d,%d\t", directory->n, index);
 		if (res & FAT_SHORT) {
 			fatentryprint(directory, index);
-			printf("\t%ls", scan.name);
+			printf("\t%s", scan.name);
 		}
 		puts("");
 	}
@@ -314,7 +306,7 @@ int main() {
 	     (res = fatlongnext(f, &directory, &index,
 		&startdirectory, &startindex, &name)) != FAT_END;
 	     fatnextentry(f, &directory, &index)) {
-		printf("%ls ", name);
+		printf("%s ", name);
 		free(name);
 	}
 	puts("");
@@ -324,7 +316,7 @@ int main() {
 	for (index = 0;
 	     ! fatnextname(f, &directory, &index, &name);
 	     fatnextentry(f, &directory, &index)) {
-		printf("%ls ", name);
+		printf("%s ", name);
 		free(name);
 	}
 	puts("");

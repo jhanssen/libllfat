@@ -77,12 +77,12 @@ void check() {
 /*
  * print a long name
  */
-void printlongname(char *before, wchar_t *name, char *after) {
+void printlongname(char *before, char *name, char *after) {
 	int i;
 
 	printf("%s", before);
 
-	for (i = 0; name[i] != L'\0'; i++)
+	for (i = 0; name[i] != '\0'; i++)
 		if (iswcntrl(name[i]))
 			printf("?");
 		else
@@ -94,8 +94,8 @@ void printlongname(char *before, wchar_t *name, char *after) {
 /*
  * print the complete path of a file
  */
-void printpath(fat *f, wchar_t *path, unit *directory, int index,
-		wchar_t *name, int err, unit *longdirectory, int longindex,
+void printpath(fat *f, char *path, unit *directory, int index,
+		char *name, int err, unit *longdirectory, int longindex,
 		void *user) {
 	(void) f;
 	(void) directory;
@@ -121,8 +121,7 @@ int fileoptiontoreferenceboth(fat *f, char *option,
 		int32_t *previous, int32_t *target) {
 	int32_t r;
 	char *path;
-	size_t len;
-	wchar_t *pathlong, *legalized, *converted;
+	char *pathlong, *legalized, *converted;
 	int res;
 
 	r = fatgetrootbegin(f);
@@ -160,11 +159,7 @@ int fileoptiontoreferenceboth(fat *f, char *option,
 		return res && *target == FAT_ERR;
 	}
 
-	len = mbstowcs(NULL, option, 0);
-	if (len == (size_t) -1)
-		return -1;
-	pathlong = malloc((len + 1) * sizeof(wchar_t));
-	mbstowcs(pathlong, option, len + 1);
+	pathlong = option;
 
 	if (nostoragepaths)
 		converted = pathlong;
@@ -212,8 +207,7 @@ int fileoptiontoreference(fat *f, char *option,
  */
 int createfile(fat *f, int32_t *dir, char *path, int dot,
 		unit **directory, int *index) {
-	size_t len;
-	wchar_t *pathlong, *legalized, *convertedlong;
+	char *pathlong, *legalized, *convertedlong;
 	char *converted;
 	int res;
 	
@@ -242,11 +236,7 @@ int createfile(fat *f, int32_t *dir, char *path, int dot,
 		return res;
 	}
 
-	len = mbstowcs(NULL, path, 0);
-	if (len == (size_t) -1)
-		return -1;
-	pathlong = malloc((len + 1) * sizeof(wchar_t));
-	mbstowcs(pathlong, path, len + 1);
+	pathlong = path;
 
 	if (nostoragepaths)
 		convertedlong = pathlong;
@@ -540,7 +530,7 @@ void printcluster(fat *f, int32_t cl, fatinverse *rev, int run) {
 	int index;
 	int32_t previous;
 	char *path;
-	wchar_t *longpath;
+	char *longpath;
 	int ret;
 
 	fatclusterposition(f, cl, &origin, &size);
@@ -582,7 +572,7 @@ void printcluster(fat *f, int32_t cl, fatinverse *rev, int run) {
 			else {
 				longpath = fatinversepathlong(f, rev,
 					directory, index, previous);
-				printf("%ls\n", longpath);
+				printf("%s\n", longpath);
 				free(longpath);
 			}
 
@@ -613,7 +603,7 @@ int _dumpclusters(fat *f,
 		unit __attribute__((unused)) *dirdirectory,
 		int __attribute__((unused)) dirindex,
 		int32_t __attribute__((unused)) dirprevious,
-		wchar_t *name,
+		char *name,
 		int __attribute__((unused)) err,
 		unit __attribute__((unused)) *longdirectory,
 		int __attribute__((unused)) longindex,
@@ -624,7 +614,7 @@ int _dumpclusters(fat *f,
 	if (fatreferenceisboot(directory, index, previous))
 		printf("/\n");
 	else if (fatreferenceisentry(directory, index, previous))
-		printf("%ls\n", name);
+		printf("%s\n", name);
 	else
 		printcluster(f, previous, NULL, 0);
 
@@ -1422,8 +1412,7 @@ int main(int argn, char *argv[]) {
 	int32_t afirst, alast;
 	off_t offset;
 	int signature, debug;
-	size_t wlen;
-	wchar_t *longname, *longpath, *legalized;
+	char *longname, *longpath, *legalized;
 	fat *f, *cross;
 	int fatnum, bootindex;
 	int32_t previous, target, r, dir, cl, next, other, start;
@@ -1639,32 +1628,22 @@ int main(int argn, char *argv[]) {
 			}
 		}
 		else {
-			wlen = mbstowcs(NULL, option1, 0);
-			if (wlen == (size_t) -1) {
-				printf("invalid string: %s\n", option1);
-				return -1;
-			}
-			longpath = malloc((wlen + 1) * sizeof(wchar_t));
-			mbstowcs(longpath, option1, wlen + 1);
+			longpath = option1;
 
 			if ((finalres = fatinvalidpathlong(longpath)))
 				printf("invalid\n");
 			else {
 				longname = fatstoragepathlong(longpath);
-				printf("valid: |%ls|\n", longname);
+				printf("valid: |%s|\n", longname);
 				free(longname);
 			}
 		}
 		return 0;
 	}
 	else if (! strcmp(operation, "legalize")) {
-		wlen = mbstowcs(NULL, option1, 0);
-		if (wlen == (size_t) -1)
-			return -1;
-		longpath = malloc((wlen + 1) * sizeof(wchar_t));
-		mbstowcs(longpath, option1, wlen + 1);
+		longpath = option1;
 		legalized = fatlegalizepathlong(longpath);
-		printf("%ls\n", legalized);
+		printf("%s\n", legalized);
 		free(legalized);
 		free(longpath);
 		return 0;
@@ -2887,10 +2866,10 @@ int main(int argn, char *argv[]) {
 		else {
 			if (! (fatlongentrytoshort(f, longdirectory, longindex,
 					&directory, &index, &longname))) {
-				printf("error in file %ls\n", longname);
+				printf("error in file %s\n", longname);
 				exit(1);
 			}
-			printf("%ls\n", longname);
+			printf("%s\n", longname);
 		}
 	}
 	else if (! strcmp(operation, "setname")) {

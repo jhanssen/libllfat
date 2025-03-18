@@ -67,14 +67,14 @@ void fatprintentry(fat __attribute__((unused)) *f,
 /*
  * print a file entry with its path
  */
-void fatprintentrylong(fat __attribute__((unused)) *f, wchar_t *path,
+void fatprintentrylong(fat __attribute__((unused)) *f, char *path,
 		unit *directory, int index,
-		wchar_t *name, int err,
+		char *name, int err,
 		unit __attribute__((unused)) *longdirectory,
 		int __attribute__((unused)) longindex,
 		void __attribute__((unused)) *user) {
 	char line[80];
-	snprintf(line, 50, "%ls%ls", path, name);
+	snprintf(line, 50, "%s%s", path, name);
 	printf("%-50.50s %s", line, err ? "" : "ERR ");
 	fatentryprint(directory, index);
 	printf("\n");
@@ -99,7 +99,7 @@ int main(int argn, char *argv[]) {
 	fatinverse *rev;
 	int res;
 	struct fatlongscan scan;
-	wchar_t longname[1000], *in, *out;
+	char longname[1000], *in, *out;
 
 	if (argn - 1 < 1) {
 		printf("usage:\n\tfattest filename [test]\n");
@@ -927,7 +927,7 @@ int main(int argn, char *argv[]) {
 				fatentryprint(directory, index);
 			else
 				printf("\t\t\t");
-			printf("\t%ls", scan.name);
+			printf("\t%s", scan.name);
 			if (res & FAT_LONG_ALL)
 				printf("\t(longname: %d,%d)",
 					scan.longdirectory->n,
@@ -942,13 +942,13 @@ int main(int argn, char *argv[]) {
 
 		fatlongdebug = 1;
 
-		if (fatlookupfilelong(f, r, L"directory.c",
+		if (fatlookupfilelong(f, r, "directory.c",
 				&directory, &index))
 			printf("not found\n");
 		else
 			printf("found: %d,%d\n", directory->n, index);
 
-		if (fatlookupfilelong(f, r, L"nonexistent.txt",
+		if (fatlookupfilelong(f, r, "nonexistent.txt",
 				&directory, &index))
 			printf("not found\n");
 		else
@@ -962,7 +962,7 @@ int main(int argn, char *argv[]) {
 		fatlongdebug = 1;
 
 		if (fatlookuppathlong(f, r, \
-			L"alongdirectoryname/oneinsideit/alongfilename.text",
+			"alongdirectoryname/oneinsideit/alongfilename.text",
 			&directory, &index))
 			printf("not found\n");
 		else
@@ -983,7 +983,7 @@ int main(int argn, char *argv[]) {
 		else
 			printf("found: %d,%d\n", longdirectory->n, longindex);
 
-		if (fatfindfreepathlong(f, r, L"/aaa", 14, &directory, &index,
+		if (fatfindfreepathlong(f, r, "/aaa", 14, &directory, &index,
 				&longdirectory, &longindex))
 			printf("not found\n");
 		else
@@ -998,7 +998,7 @@ int main(int argn, char *argv[]) {
 
 		if (fatcreatefileshortlong(f, r,
 				(unsigned char *) "ANAME   TXT", 0x10,
-				L"alongfilenamehere.txt",
+				"alongfilenamehere.txt",
 				&directory, &index,
 				&longdirectory, &longindex))
 			printf("cannot create file\n");
@@ -1011,7 +1011,7 @@ int main(int argn, char *argv[]) {
 		printf("\n");
 
 		if (fatcreatefilelongboth(f, r,
-				L"longname.TXT",
+				"longname.TXT",
 				&directory, &index,
 				&longdirectory, &longindex))
 			printf("cannot create file\n");
@@ -1025,9 +1025,9 @@ int main(int argn, char *argv[]) {
 		// break;
 
 		for (i = 55; i < 82; i++) {
-			swprintf(longname, 1000,
-					L"alongdirectoryname/"
-					L"anotherfilestillquitesomehowlong"
+			sprintf(longname,
+					"alongdirectoryname/"
+					"anotherfilestillquitesomehowlong"
 					"%d.txt", i);
 			if (fatcreatefilepathlongboth(f, r, longname,
 					&directory, &index,
@@ -1147,9 +1147,9 @@ int main(int argn, char *argv[]) {
 
 	case 37:
 		printf("\n********* filename legalize test\n");
-		in = L"a file : name <> with some \t special characters.txt";
+		in = "a file : name <> with some \t special characters.txt";
 		out = fatlegalizepathlong(in);
-		printf("original:  %ls\nlegalized: %ls\n", in, out);
+		printf("original:  %s\nlegalized: %s\n", in, out);
 
 		break;
 	}
