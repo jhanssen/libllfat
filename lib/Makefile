@@ -8,7 +8,7 @@ CFLAGS+=-fPIC
 # CFLAGS+=-g
 
 OBJS=tsearch.o fs.o boot.o table.o unit.o entry.o directory.o reference.o inverse.o \
-long.o complex.o
+long.o complex.o ucs2conv.o
 
 all: $(LIBS) $(HEADERS)
 

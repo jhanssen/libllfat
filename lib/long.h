@@ -20,11 +20,6 @@
 #include "fs.h"
 
 /*
- * wide strings
- */
-#define WNULL ((wchar_t) (L'\0'))
-
-/*
  * find next directory entry, possibly with long filename
  */
 #define FAT_END        0x8000
@@ -39,7 +34,7 @@ struct fatlongscan {
 	uint8_t checksum;
 	unit *longdirectory;
 	int longindex;
-	wchar_t *name;
+	char *name;
 	int len;
 	int err;
 };
@@ -49,77 +44,77 @@ void fatlongend(struct fatlongscan *scan);
 int fatlongscan(unit *directory, int index, struct fatlongscan *scan);
 
 int fatlongentrytoshort(fat *f, unit *longdirectory, int longindex,
-		unit **directory, int *index, wchar_t **name);
+		unit **directory, int *index, char **name);
 int fatlongnext(fat *f, unit **directory, int *index,
-		unit **longdirectory, int *longindex, wchar_t **name);
-int fatnextname(fat *f, unit **directory, int *index, wchar_t **name);
+		unit **longdirectory, int *longindex, char **name);
+int fatnextname(fat *f, unit **directory, int *index, char **name);
 
 /*
  * long file name lookup
  */
-int fatlookupfilelongboth(fat *f, int32_t dir, wchar_t *name,
+int fatlookupfilelongboth(fat *f, int32_t dir, char *name,
 		unit **directory, int *index,
 		unit **longdirectory, int *longindex);
-int fatlookupfilelong(fat *f, int32_t dir, wchar_t *name,
+int fatlookupfilelong(fat *f, int32_t dir, char *name,
 		unit **directory, int *index);
-int32_t fatlookupfirstclusterlong(fat *f, int32_t dir, wchar_t *name);
+int32_t fatlookupfirstclusterlong(fat *f, int32_t dir, char *name);
 
 /*
  * path lookup
  */
-int fatlookuppathlongbothdir(fat *f, int32_t *dir, wchar_t *path,
+int fatlookuppathlongbothdir(fat *f, int32_t *dir, char *path,
 		unit **directory, int *index,
 		unit **longdirectory, int *longindex);
-int fatlookuppathlongboth(fat *f, int32_t dir, wchar_t *path,
+int fatlookuppathlongboth(fat *f, int32_t dir, char *path,
 		unit **directory, int *index,
 		unit **longdirectory, int *longindex);
-int fatlookuppathlongdir(fat *f, int32_t *dir, wchar_t *path,
+int fatlookuppathlongdir(fat *f, int32_t *dir, char *path,
 		unit **directory, int *index);
-int fatlookuppathlong(fat *f, int32_t dir, wchar_t *path,
+int fatlookuppathlong(fat *f, int32_t dir, char *path,
 		unit **directory, int *index);
-int32_t fatlookuppathfirstclusterlong(fat *f, int32_t dir, wchar_t *path);
+int32_t fatlookuppathfirstclusterlong(fat *f, int32_t dir, char *path);
 
 /*
  * find free entries
  */
 int fatfindfreelong(fat *f, int len, unit **directory, int *index,
 		unit **startdirectory, int *startindex);
-int fatfindfreepathlong(fat *f, int32_t dir, wchar_t *path, int len,
+int fatfindfreepathlong(fat *f, int32_t dir, char *path, int len,
 		unit **directory, int *index,
 		unit **startdirectory, int *startindex);
 
 /*
  * file names
  */
-int fatinvalidnamelong(const wchar_t *name);
-int fatinvalidpathlong(const wchar_t *path);
-wchar_t *fatlegalizenamelong(const wchar_t *path);
-wchar_t *fatlegalizepathlong(const wchar_t *path);
-wchar_t *fatstoragenamelong(const wchar_t *name);
-wchar_t *fatstoragepathlong(const wchar_t *path);
+int fatinvalidnamelong(const char *name);
+int fatinvalidpathlong(const char *path);
+char *fatlegalizenamelong(const char *path);
+char *fatlegalizepathlong(const char *path);
+char *fatstoragenamelong(const char *name);
+char *fatstoragepathlong(const char *path);
 
 /*
  * create an empty file
  */
 int fatcreatefileshortlong(fat *f, int32_t dir,
 		unsigned char shortname[11], unsigned char casebyte,
-		wchar_t *longname,
+		char *longname,
 		unit **directory, int *index,
 		unit **startdirectory, int *startindex);
-int fatcreatefilelongboth(fat *f, int32_t dir, wchar_t *longname,
+int fatcreatefilelongboth(fat *f, int32_t dir, char *longname,
 		unit **directory, int *index,
 		unit **startdirectory, int *startindex);
-int fatcreatefilelong(fat *f, int32_t dir, wchar_t *longname,
+int fatcreatefilelong(fat *f, int32_t dir, char *longname,
 		unit **directory, int *index);
-int fatcreatefilepathlongbothdir(fat *f, int32_t *dir, wchar_t *path,
+int fatcreatefilepathlongbothdir(fat *f, int32_t *dir, char *path,
 		unit **directory, int *index,
 		unit **startdirectory, int *startindex);
-int fatcreatefilepathlongboth(fat *f, int32_t dir, wchar_t *path,
+int fatcreatefilepathlongboth(fat *f, int32_t dir, char *path,
 		unit **directory, int *index,
 		unit **startdirectory, int *startindex);
-int fatcreatefilepathlongdir(fat *f, int32_t *dir, wchar_t *path,
+int fatcreatefilepathlongdir(fat *f, int32_t *dir, char *path,
 		unit **directory, int *index);
-int fatcreatefilepathlong(fat *f, int32_t dir, wchar_t *path,
+int fatcreatefilepathlong(fat *f, int32_t dir, char *path,
 		unit **directory, int *index);
 
 /*
@@ -134,7 +129,7 @@ typedef int(* refrunlong)(fat *f,
 	unit *directory, int index, int32_t previous,
 	unit *startdirectory, int startindex, int32_t startprevious,
 	unit *dirdirectory, int dirindex, int32_t dirprevious,
-	wchar_t *name, int err, unit *longdirectory, int longindex,
+	char *name, int err, unit *longdirectory, int longindex,
 	int direction, void *user);
 int fatreferenceexecutelong(fat *f,
 		unit *directory, int index, int32_t previous,
@@ -146,8 +141,8 @@ void fatdumplong(fat *f, unit* directory, int index, int32_t previous,
 /*
  * fatfileexexcute(), longname version
  */
-typedef void (* longrun)(fat *f, wchar_t *path, unit *directory, int index,
-		wchar_t *name, int err, unit *longdirectory, int longindex,
+typedef void (* longrun)(fat *f, char *path, unit *directory, int index,
+		char *name, int err, unit *longdirectory, int longindex,
 		void *user);
 int fatfileexecutelong(fat *f, unit *directory, int index, int32_t previous,
 		longrun act, void *user);
@@ -162,7 +157,7 @@ int fatlongreferencetoentry(fat *f, fatinverse *rev,
 		unit **directory, int *index, int32_t *previous,
 		unit **longdirectory, int *longindex);
 int fatshortentrytolongname(fat *f, fatinverse *rev,
-		unit *directory, int index, wchar_t **longname);
-wchar_t *fatinversepathlong(fat *f, fatinverse *rev,
+		unit *directory, int index, char **longname);
+char *fatinversepathlong(fat *f, fatinverse *rev,
 		unit *directory, int index, int32_t previous);
 
