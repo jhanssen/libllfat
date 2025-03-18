@@ -16,3 +16,4 @@ set(SOURCES
 add_library(llfat STATIC ${SOURCES})
 target_include_directories(llfat PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(llfat PRIVATE c_std_99)
+target_link_libraries(llfat utf8proc)
