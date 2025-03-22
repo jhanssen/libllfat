@@ -137,7 +137,7 @@ int fatlookuppathdir(fat *f, int32_t *dir,
 	if (end == path)
 		return fatlookuppathdir(f, dir, path + 1, directory, ind);
 	
-	for (last = end; *last == L'/'; last++) {
+	for (last = end; *last == '/'; last++) {
 	}
 
 	if (*last == '\0') {
