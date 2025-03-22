@@ -36,3 +36,4 @@
  * reading the fat data without searching in the cache
  */
 
+#pragma once
