@@ -41,7 +41,6 @@ add_custom_target(
 )
 
 add_library(llfat STATIC ${SOURCES})
-target_include_directories(llfat PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(llfat PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(llfat PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(llfat PRIVATE c_std_99)
 add_dependencies(llfat llfat_headers)

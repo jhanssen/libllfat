@@ -28,7 +28,7 @@
 int32_t fatreferencegettarget(fat *f,
 		unit *directory, int index, int32_t previous);
 int fatreferencesettarget(fat *f,
-		unit *directory, int index, int32_t previous, int32_t new);
+                unit *directory, int index, int32_t previous, int32_t newt);
 
 /*
  * check conditions on a cluster reference
@@ -63,7 +63,7 @@ void fatreferenceprint(unit *directory, int index, int32_t previous);
  */
 int fatclustermove(fat *f,
 		unit *directory, int index, int32_t previous,
-		int32_t new,
+                int32_t newt,
 		int writeback);
 int fatclusterswap(fat *f,
 		unit *dfirst, int ifirst, int32_t pfirst,
