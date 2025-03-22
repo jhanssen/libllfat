@@ -77,16 +77,16 @@ int32_t fatreferencegettarget(fat *f,
 }
 
 int fatreferencesettarget(fat *f,
-		unit *directory, int index, int32_t previous, int32_t new) {
-	if (directory != NULL && new == FAT_EOF)
-		new = FAT_UNUSED;
+                unit *directory, int index, int32_t previous, int32_t newt) {
+        if (directory != NULL && newt == FAT_EOF)
+                newt = FAT_UNUSED;
 
 	if (directory != NULL)
-		return fatentrysetfirstcluster(directory, index, f->bits, new);
+                return fatentrysetfirstcluster(directory, index, f->bits, newt);
  	else if (previous == -1)
-		return fatsetrootbegin(f, new);
+                return fatsetrootbegin(f, newt);
 	else
-		return fatsetnextcluster(f, previous, new);
+                return fatsetnextcluster(f, previous, newt);
 }
 
 /*
@@ -191,7 +191,7 @@ void fatreferenceprint(unit *directory, int index, int32_t previous) {
  */
 
 int fatclustermove(fat *f,
-		unit *directory, int index, int32_t previous, int32_t new,
+                unit *directory, int index, int32_t previous, int32_t newt,
 		int writeback) {
 	int32_t current, next;
 	unit *cluster;
@@ -206,10 +206,10 @@ int fatclustermove(fat *f,
 	if (next == FAT_BAD)
 		printf("warning: moving bad cluster %d\n", current);
 
-	if (fatgetnextcluster(f, new) == FAT_BAD)
-		printf("warning: moving to bad cluster %d\n", new);
+        if (fatgetnextcluster(f, newt) == FAT_BAD)
+                printf("warning: moving to bad cluster %d\n", newt);
 
-	if (fatgetnextcluster(f, new) != FAT_UNUSED)
+        if (fatgetnextcluster(f, newt) != FAT_UNUSED)
 		return -1;
 
 			/* move the cluster itself */
@@ -217,7 +217,7 @@ int fatclustermove(fat *f,
 	cluster = fatclusterread(f, current);
 	if (cluster == NULL)
 		return -2;
-	fatunitmove(&f->clusters, cluster, new);
+        fatunitmove(&f->clusters, cluster, newt);
 	if (writeback)
 		if (fatunitwriteback(cluster)) {
 			fatunitmove(&f->clusters, cluster, current);
@@ -226,9 +226,9 @@ int fatclustermove(fat *f,
 
 			/* change the references */
 
-	fatreferencesettarget(f, directory, index, previous, new);
-	fatsetnextcluster(f, new, next);
-	if (new != current)
+        fatreferencesettarget(f, directory, index, previous, newt);
+        fatsetnextcluster(f, newt, next);
+        if (newt != current)
 		fatsetnextcluster(f, current, FAT_UNUSED);
 
 	return 0;

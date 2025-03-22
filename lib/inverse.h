@@ -63,7 +63,7 @@ int fatinversecheck(fat *f, fatinverse *rev, int file);
  */
 void fatinversesettarget(fat *f, fatinverse *rev,
 		unit *directory, int index, int32_t previous,
-		int32_t new, int isdir);
+                int32_t newt, int isdir);
 int fatinversemovereference(fat *f, fatinverse *rev,
 		unit *directory, int index, int32_t previous, int isdir,
 		int32_t dst, int writeback);

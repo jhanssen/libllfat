@@ -287,8 +287,8 @@ int fatinversecheck(fat *f, fatinverse *rev, int file) {
 
 void fatinversesettarget(fat *f, fatinverse *rev,
 		unit *directory, int index, int32_t previous,
-		int32_t new, int isdir) {
-	fatreferencesettarget(f, directory, index, previous, new);
+                int32_t newt, int isdir) {
+        fatreferencesettarget(f, directory, index, previous, newt);
 
 	if (isdir == -1) {
 		if (fatreferenceisdirectory(directory, index, previous))
@@ -298,7 +298,7 @@ void fatinversesettarget(fat *f, fatinverse *rev,
 			isdir = 1;
 	}
 
-	if (new == FAT_UNUSED)
+        if (newt == FAT_UNUSED)
 		fatinverseclear(rev, previous);
 	else
 		fatinverseset(f, rev, directory, index, previous, isdir);
