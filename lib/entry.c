@@ -57,7 +57,7 @@ int fatentryislongpart(unit *directory, int index) {
  * convert the name between the 11-byte array to a max-13-char string
  */
 
-void fatshortnametostring(char dst[13], unsigned char src[11]) {
+void fatshortnametostring(char dst[13], const unsigned char src[11]) {
 	char *scan, *dot;
 
 	memset(dst, '\0', 13);
@@ -79,8 +79,8 @@ void fatshortnametostring(char dst[13], unsigned char src[11]) {
 	}
 }
 
-int fatstringtoshortname(unsigned char dst[11], char src[13]) {
-	char *pos, *dot;
+int fatstringtoshortname(unsigned char dst[11], const char src[13]) {
+        const char *pos, *dot;
 
 	memset(dst, ' ', 11);
 
@@ -118,7 +118,7 @@ void fatentrygetshortname(unit *directory, int index, char shortname[13]) {
 	fatshortnametostring(shortname, & ENTRYPOS(directory, index, 0));
 }
 
-int fatentrysetshortname(unit *directory, int index, char shortname[13]) {
+int fatentrysetshortname(unit *directory, int index, const char shortname[13]) {
 	int res;
 	res = fatstringtoshortname(& ENTRYPOS(directory, index, 0),
 			shortname);
@@ -142,7 +142,7 @@ void fatentryprintshortname(unit *directory, int index) {
 			putchar(shortname[i]);
 }
 
-int fatentrycompareshortname(unit *directory, int index, char shortname[13]) {
+int fatentrycompareshortname(unit *directory, int index, const char shortname[13]) {
 	char name[13];
 	fatentrygetshortname(directory, index, name);
 	return strcmp(shortname, name);

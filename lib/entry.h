@@ -62,12 +62,12 @@ int fatentryislongpart(unit *directory, int index);
 /*
  * get and set parts of a directory entry
  */
-void fatshortnametostring(char dst[13], unsigned char src[11]);
-int fatstringtoshortname(unsigned char dst[11], char src[13]);
+void fatshortnametostring(char dst[13], const unsigned char src[11]);
+int fatstringtoshortname(unsigned char dst[11], const char src[13]);
 void fatentrygetshortname(unit *directory, int index, char shortname[13]);
-int fatentrysetshortname(unit *directory, int index, char shortname[13]);
+int fatentrysetshortname(unit *directory, int index, const char shortname[13]);
 void fatentryprintshortname(unit *directory, int index);
-int fatentrycompareshortname(unit *directory, int index, char shortname[13]);
+int fatentrycompareshortname(unit *directory, int index, const char shortname[13]);
 int fatentryisdotfile(unit *directory, int index);
 
 int32_t fatentrygetfirstcluster(unit *directory, int index, int bits);
