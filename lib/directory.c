@@ -281,8 +281,10 @@ int fatfindfreeentrypathdir(fat *f, int32_t *dir, const char *path,
 
 	r = fatgetrootbegin(f);
 	
-	if (path == NULL || ! strcmp(path, "") || ! strcmp(path, "/"))
-		cl = r;
+        if (path == NULL)
+            cl = *dir;
+        else if (! strcmp(path, "") || ! strcmp(path, "/"))
+            cl = r;
 	else {
 		if (path[0] == '/')
 			*dir = r;
@@ -454,7 +456,7 @@ int fatcreatefiledir(fat *f, int32_t *dir, char *path,
 		*scan = '\0';
 
 	if (slash == NULL) {
-		dirname = "/";
+                dirname = NULL;
 		file = buf;
 	}
 	else if (scan == buf - 1) {
