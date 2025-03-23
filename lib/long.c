@@ -532,7 +532,9 @@ int fatfindfreepathlong(fat *f, int32_t dir, char *path, int len,
 
 	r = fatgetrootbegin(f);
 
-	if (path == NULL || ! utf8cmp(path, "") || ! utf8cmp(path, "/"))
+        if (path == NULL)
+            cl = dir;
+        else if (! utf8cmp(path, "") || ! utf8cmp(path, "/"))
 		cl = r;
 	else {
 		if (path[0] == '/')
@@ -709,13 +711,11 @@ int fatcreatefileshortlong(fat *f, int32_t dir,
 	int scanindex;
 	int len, n, pos, i;
 	char frag[14], wfiller;
-	ucs2char filler;
-	uint8_t checksum;
+        uint8_t checksum;
 
 	dprintf("fatcreatefileshortlong: %11.11s %s\n", shortname, longname);
 
-	filler = 0xFFFF;
-	fatucs2toutf8(&wfiller, &filler, 1, NULL);
+        wfiller = 0x00;
 
 	len = strlen(longname);
 	n = (len + 12) / 13 + 1;
@@ -944,7 +944,7 @@ int fatcreatefilepathlongbothdir(fat *f, int32_t *dir, char *path,
 	buf = strdup(path);
 	slash = strrchr(buf, '/');
 	if (slash == NULL) {
-		dirname = "/";
+                dirname = NULL;
 		file = path;
 	}
 	else if (slash == buf) {
@@ -959,7 +959,8 @@ int fatcreatefilepathlongbothdir(fat *f, int32_t *dir, char *path,
 
 	dprintf("path %s, file %s\n", dirname, file);
 
-	*dir = fatlookuppathfirstclusterlong(f, *dir, dirname);
+        if (dirname != NULL)
+            *dir = fatlookuppathfirstclusterlong(f, *dir, dirname);
 	if (*dir == FAT_ERR) {
 		free(buf);
 		return -1;
