@@ -76,7 +76,7 @@ int fatbootsetserialnumber(unit *boot, int *bits, uint32_t serial);
 char* fatbootgetvolumelabel(unit *boot, int *bits);
 int fatbootsetvolumelabel(unit *boot, int *bits, const char l[11]);
 char* fatbootgetfilesystemtype(unit *boot, int *bits);
-int fatbootsetfilesystemtype(unit *boot, int *bits, char t[8]);
+int fatbootsetfilesystemtype(unit *boot, int *bits, const char t[8]);
 int fatbootgetbackupsector(unit *boot);
 int fatbootsetbackupsector(unit *boot, int sector);
 int fatbootgetinfopos(unit *boot);
