@@ -222,8 +222,9 @@ char* fatucs2toutf8(char* dst, const uint16_t* src, int srclen, int* err)
         srclen = ucs2size(src);
     }
 
-    size_t dstlen = (3 * srclen) + 1; // worst case: all 3-byte utf8
+    size_t dstlen = (3 * srclen); // worst case: all 3-byte utf8
     if (dst == NULL) {
+        dstlen += 1;
         dst = malloc(dstlen);
     }
 
@@ -249,8 +250,9 @@ uint16_t* fatutf8toucs2(uint16_t* dst, const char* src, int srclen, int* err)
         srclen = strlen(src);
     }
 
-    size_t dstlen = srclen + 1; // worst case: all one-byte utf8
+    size_t dstlen = srclen; // worst case: all one-byte utf8
     if (dst == NULL) {
+        dstlen += 1;
         dst = malloc(dstlen * sizeof(uint16_t));
     }
 
@@ -276,8 +278,9 @@ char* fatchartoutf8(char* dst, const char* src, int srclen, int* err)
         srclen = strlen(src);
     }
 
-    size_t dstlen = srclen + 1;
+    size_t dstlen = srclen;
     if (dst == NULL) {
+        dstlen += 1;
         dst = malloc(dstlen);
     }
 
@@ -303,8 +306,9 @@ char* fatutf8tochar(char* dst, const char* src, int srclen, int* err)
         srclen = strlen(src);
     }
 
-    size_t dstlen = srclen + 1;
+    size_t dstlen = srclen;
     if (dst == NULL) {
+        dstlen += 1;
         dst = malloc(dstlen);
     }
 
