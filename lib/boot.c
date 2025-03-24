@@ -606,7 +606,7 @@ char* fatbootgetfilesystemtype(unit *boot, int *bits) {
 	}
 	return t;
 }
-int fatbootsetfilesystemtype(unit *boot, int *bits, char t[8]) {
+int fatbootsetfilesystemtype(unit *boot, int *bits, const char t[8]) {
 	if (_fatbootbits(boot, bits) == 12 || _fatbootbits(boot, bits) == 16) {
 		memcpy(fatunitgetdata(boot) + 0x36, t, 8);
 		boot->dirty = 1;

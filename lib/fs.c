@@ -497,7 +497,7 @@ int fatsetvolumelabel(fat *f, const char l[11]) {
 char* fatgetfilesystemtype(fat *f) {
 	return fatbootgetfilesystemtype(f->boot, &f->bits);
 }
-int fatsetfilesystemtype(fat *f, char t[8]) {
+int fatsetfilesystemtype(fat *f, const char t[8]) {
 	return fatbootsetfilesystemtype(f->boot, &f->bits, t);
 }
 

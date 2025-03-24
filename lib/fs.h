@@ -114,7 +114,7 @@ int fatsetserialnumber(fat *f, uint32_t serial);
 char* fatgetvolumelabel(fat *f);
 int fatsetvolumelabel(fat *f, const char l[11]);
 char* fatgetfilesystemtype(fat *f);
-int fatsetfilesystemtype(fat *f, char t[8]);
+int fatsetfilesystemtype(fat *f, const char t[8]);
 int fatgetbackupsector(fat *f);
 int fatsetbackupsector(fat *f, int sector);
 int fatcopyboottobackup(fat *f);
