@@ -29,7 +29,11 @@
 #include <search.h>
 #include <ctype.h>
 #include "unit.h"
-#include "tsearch.h"
+#ifdef __APPLE__
+# include "linux_tsearch.h"
+#else
+# include <search.h>
+#endif
 
 int fatunitdebug = 0;
 #define dprintf if (fatunitdebug) printf
