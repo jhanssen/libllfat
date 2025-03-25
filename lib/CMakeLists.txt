@@ -1,5 +1,4 @@
 set(SOURCES
-    tsearch.c
     fs.c
     boot.c
     table.c
@@ -11,6 +10,10 @@ set(SOURCES
     long.c
     complex.c
 )
+
+if (APPLE)
+    list(APPEND SOURCES linux_tsearch.c)
+endif()
 
 # concat header files into llfat.h
 set(HEADERS
