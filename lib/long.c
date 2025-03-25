@@ -50,7 +50,7 @@ int fatlongdebug = 0;
 
 #define MIN(x,y) (((x) < (y)) ? (x) : (y))
 
-#define UTF8_CHAR_SIZE
+#define UTF8_CHAR_SIZE 3
 
 /*
  * ucs2 type, length function and print
