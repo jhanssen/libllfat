@@ -89,7 +89,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <search.h>
-#include "tsearch.h"
+#include "linux_tsearch.h"
 
 /* Assume malloc returns naturally aligned (alignof (max_align_t))
    pointers so we can use the low bits to store some extra info.  This
