@@ -50,6 +50,8 @@ int fatlongdebug = 0;
 
 #define MIN(x,y) (((x) < (y)) ? (x) : (y))
 
+#define UTF8_CHAR_SIZE
+
 /*
  * ucs2 type, length function and print
  */
@@ -150,7 +152,7 @@ void fatlongend(struct fatlongscan *scan) {
 
 void _fatscanstart(unit *directory, int index, struct fatlongscan *scan) {
 	free(scan->name);
-	scan->name = malloc(sizeof(char));
+        scan->name = malloc(UTF8_CHAR_SIZE);
 	scan->name[0] = 0;
 	scan->len = 1;
 	scan->err = 0;
@@ -201,7 +203,7 @@ int fatlongscan(unit *directory, int index, struct fatlongscan *scan) {
 		first = 0;
 
 	scan->name = realloc(scan->name,
-			(scan->len + 5 + 6 + 2) * sizeof(char));
+                        (scan->len + 5 + 6 + 2) * UTF8_CHAR_SIZE);
 	memmove(scan->name + 5 + 6 + 2, scan->name,
 			scan->len * sizeof(char));
 	fatucs2toutf8(scan->name,
@@ -594,7 +596,7 @@ int fatinvalidpathlong(const char *path) {
 char *_fatlegalize(const char *path, const char *illegal) {
 	char *dst, *dscan, *scan;
 
-	dst = malloc(strlen(path) * sizeof(char) * 4);
+        dst = malloc(strlen(path) * UTF8_CHAR_SIZE * 4);
 	dscan = dst;
 
 	for (scan = (char *) path; *scan; scan++)
@@ -658,7 +660,7 @@ char *_fatstoragepartlong(char **dst, const char **src) {
  */
 char *fatstoragenamelong(const char *name) {
 	char *dst, *start;
-	dst = malloc(sizeof(char) * (strlen(name) + 1));
+        dst = malloc(UTF8_CHAR_SIZE * (strlen(name) + 1));
 	start = _fatstoragepartlong(&dst, &name);
 	if (*dst == '/')
 		printf("WARNING: path passed as file to %s()\n", __func__);
@@ -670,7 +672,7 @@ char *fatstoragenamelong(const char *name) {
  */
 char *fatstoragepathlong(const char *path) {
 	char *start, *dst;
-	start = malloc(sizeof(char) * (strlen(path) + 1));
+        start = malloc(UTF8_CHAR_SIZE * (strlen(path) + 1));
 	for (dst = start; _fatstoragepartlong(&dst, &path) && *path; ) {
 		path++;
 		dst++;
@@ -1347,7 +1349,7 @@ char *fatinversepathlong(fat *f, fatinverse *rev,
 
 		namelen = strlen(longname);
 		path = realloc(path,
-			sizeof(char) * (pathlen + namelen + 1));
+                        UTF8_CHAR_SIZE * (pathlen + namelen + 1));
 		memmove(path + namelen + 1, path, pathlen);
 		path[namelen] = pathlen == 0 ? '\0' : '/';
 		memmove(path, longname, namelen);
