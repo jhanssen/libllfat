@@ -918,7 +918,7 @@ int _fatshortexists(fat *f, int32_t dir, unsigned char shortname[11]) {
 
 int _fatlongtoshort(fat *f, int32_t dir, wchar_t *name,
 		unsigned char shortname[11]) {
-	unsigned char stem[11], num[9];
+        unsigned char stem[11], num[11];
 	wchar_t *dot;
 	int i, n;
 
