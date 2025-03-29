@@ -100,7 +100,7 @@ dsttype *funcname(dsttype *dst, srctype *src, int len, int *err) {	\
 	res = iconv(cd, (char **) &src, (size_t *) &srclen,		\
 			(char **) &dstscan, &dstlen);			\
 	if (res > 0) {							\
-		printf("%d characters not converted\n", res);		\
+                dprintf("%d characters not converted\n", res);		\
 		if (err)						\
 			*err += res;					\
 	}								\
@@ -111,10 +111,10 @@ dsttype *funcname(dsttype *dst, srctype *src, int len, int *err) {	\
 	}								\
 	iconv_close(cd);						\
 									\
-	if (srclen != 0)						\
-		printf("%zu characters not converted\n", srclen);	\
+        if (srclen != 0)						\
+                dprintf("%zu characters not converted\n", srclen);	\
 	if (dstlen != 0)						\
-		printf("%zu characters not filled\n", dstlen);		\
+                dprintf("%zu characters not filled\n", dstlen);		\
 									\
 	return dst;							\
 }
