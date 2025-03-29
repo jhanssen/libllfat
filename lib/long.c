@@ -594,7 +594,9 @@ int fatfindfreepathlong(fat *f, int32_t dir, wchar_t *path, int len,
 
 	r = fatgetrootbegin(f);
 
-	if (path == NULL || ! wcscmp(path, L"") || ! wcscmp(path, L"/"))
+        if (path == NULL)
+            cl = dir;
+        else if (! wcscmp(path, L"") || ! wcscmp(path, L"/"))
 		cl = r;
 	else {
 		if (path[0] == '/')
@@ -1006,7 +1008,7 @@ int fatcreatefilepathlongbothdir(fat *f, int32_t *dir, wchar_t *path,
 	buf = wcsdup(path);
 	slash = wcsrchr(buf, L'/');
 	if (slash == NULL) {
-		dirname = L"/";
+                dirname = NULL;
 		file = path;
 	}
 	else if (slash == buf) {
@@ -1021,7 +1023,8 @@ int fatcreatefilepathlongbothdir(fat *f, int32_t *dir, wchar_t *path,
 
 	dprintf("path %ls, file %ls\n", dirname, file);
 
-	*dir = fatlookuppathfirstclusterlong(f, *dir, dirname);
+        if (dirname != NULL)
+            *dir = fatlookuppathfirstclusterlong(f, *dir, dirname);
 	if (*dir == FAT_ERR) {
 		free(buf);
 		return -1;
